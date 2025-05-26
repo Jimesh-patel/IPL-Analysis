@@ -1,22 +1,26 @@
 from flask import Blueprint, jsonify
-from services.data_loader import matches_df
+from services import data_loader
 
 seasons_bp = Blueprint('seasons', __name__)
 
 @seasons_bp.route('/', methods=['GET'])
 def get_seasons():
-    """Get list of all seasons"""
+    matches_df = data_loader.matches_df
     if matches_df is None:
         return jsonify({'error': 'Data not loaded'}), 500
     
     seasons = sorted(matches_df['season'].dropna().unique().tolist())
     return jsonify({'seasons': seasons})
 
-@seasons_bp.route('/<int:season>/matches', methods=['GET'])
+
+@seasons_bp.route('/<season>/matches', methods=['GET'])
 def get_season_matches(season):
-    """Get all matches for a specific season"""
+    matches_df = data_loader.matches_df
     if matches_df is None:
         return jsonify({'error': 'Data not loaded'}), 500
+    
+    if(season not in matches_df['season'].unique()):
+        return jsonify({'error': f'Invalid season: {season}'}), 400
     
     season_matches = matches_df[matches_df['season'] == season].copy()
     
@@ -33,7 +37,12 @@ def get_season_matches(season):
             'winner': match.get('winner', ''),
             'venue': match.get('venue', ''),
             'date': match.get('date', ''),
-            'match_type': match.get('match_type', 'League')
+            'match_type': match.get('match_type', 'League'),
+            'toss_winner': match.get('toss_winner', ''),
+            'toss_decision': match.get('toss_decision', ''),
+            'target_runs': int(match.get('target_runs', 0)),
+            
+            
         })
     
     return jsonify({

@@ -1,8 +1,10 @@
 from typing import Dict, Any
 import pandas as pd
+from services import data_loader
 
-def analyze_team_performance(matches_df: pd.DataFrame, team_name: str) -> Dict[str, Any]:
+def analyze_team_performance(team_name: str) -> Dict[str, Any]:
     """Analyze overall team performance."""
+    matches_df = data_loader.matches_df
     team_matches = matches_df[
         (matches_df['team1'] == team_name) |
         (matches_df['team2'] == team_name)
@@ -47,8 +49,9 @@ def analyze_team_performance(matches_df: pd.DataFrame, team_name: str) -> Dict[s
         'total_seasons': len(seasons_played)
     }
 
-def get_team_season_match_summary(matches_df: pd.DataFrame, team_name: str) -> Dict[str, Any]:
+def get_team_season_match_summary(team_name: str) -> Dict[str, Any]:
     """Get detailed season-wise match summary for a team."""
+    matches_df = data_loader.matches_df
     team_matches = matches_df[
         (matches_df['team1'] == team_name) |
         (matches_df['team2'] == team_name)

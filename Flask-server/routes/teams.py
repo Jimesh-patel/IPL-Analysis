@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify
 from services import data_loader
 
-matches_df = data_loader.matches_df
+
 teams_bp = Blueprint('teams', __name__)
 
 @teams_bp.route('/', methods=['GET'])
 def get_teams():
+    matches_df = data_loader.matches_df
     if matches_df is None or matches_df.empty:
         return jsonify({'error': 'Data not loaded or empty'}), 500
 
@@ -22,14 +23,18 @@ def get_teams():
         return jsonify({'error': f'Internal error: {str(e)}'}), 500
 
 
+
 @teams_bp.route('/<team_name>/performance', methods=['GET'])
 def get_team_performance(team_name):
+    if(team_name is None or team_name.strip() == ''):
+        return jsonify({'error': 'Team name is required'}), 400
+    matches_df = data_loader.matches_df
     if matches_df is None:
         return jsonify({'error': 'Data not loaded'}), 500
     
     from services.team_performance import analyze_team_performance
     try:
-        stats = analyze_team_performance(team_name.upper())
+        stats = analyze_team_performance(team_name)
         return jsonify(stats)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
