@@ -1,0 +1,21 @@
+team_to_state_mapping = {
+    'Royal Challengers Bangalore': 'RCB',
+    'Kings XI Punjab': 'Punjab',
+    'Delhi Daredevils': "DC",
+    'Mumbai Indians': 'MI',
+    'Kolkata Knight Riders': 'KKR',
+    'Rajasthan Royals': 'RR',
+    'Deccan Chargers': 'SRH',
+    'Chennai Super Kings': 'CSK',
+    'Kochi Tuskers Kerala': 'Kerala',
+    'Pune Warriors': 'Pune',
+    'Sunrisers Hyderabad': 'SRH',
+    'Gujarat Lions': 'GT',
+    'Rising Pune Supergiants': 'Pune',
+    'Rising Pune Supergiant': 'Pune',
+    'Delhi Capitals': 'DC',
+    'Punjab Kings': 'Punjab',
+    'Lucknow Super Giants': 'LSG',
+    'Gujarat Titans': 'GT',
+    'Royal Challengers Bengaluru': 'RCB'
+}
