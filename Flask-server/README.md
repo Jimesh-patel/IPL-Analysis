@@ -1,73 +1,167 @@
-# IPL Analysis Flask Server
+# IPL Analysis Flask API
 
-## Overview
-This project is a Flask-based web application that provides an API for analyzing Indian Premier League (IPL) cricket data. It allows users to retrieve information about teams, matches, venues, and perform various analyses such as team performance and head-to-head statistics.
+This Flask server provides a RESTful API for IPL cricket data analysis, including teams, seasons, matches, head-to-head stats, and team performance.
 
-## Project Structure
+## Base URL
+
 ```
-ipl-flask-server
-├── app.py                     # Main entry point of the Flask application
-├── requirements.txt           # Project dependencies
-├── README.md                  # Project documentation
-├── data                       # Directory containing data files
-│   ├── deliveries.csv         # Deliveries data
-│   └── matches.csv            # Matches data
-├── config                     # Configuration settings
-│   └── __init__.py           # Package initialization
-├── models                     # Data models
-│   ├── __init__.py           # Package initialization
-│   └── team_mapping.py        # Team mapping dictionary
-├── services                   # Business logic and data processing
-│   ├── __init__.py           # Package initialization
-│   ├── data_loader.py         # Data loading and preprocessing
-│   ├── team_performance.py     # Team performance analysis functions
-│   └── head_to_head.py        # Head-to-head analysis class
-├── routes                     # API routes
-│   ├── __init__.py           # Package initialization
-│   ├── teams.py               # Team-related routes
-│   ├── head_to_head.py        # Head-to-head analysis routes
-│   ├── venues.py              # Venue-related routes
-│   ├── seasons.py             # Season-related routes
-│   └── health.py              # Health check route
-└── utils                      # Utility functions
-    ├── __init__.py           # Package initialization
-    └── helpers.py             # Helper functions
+http://localhost:5000/
 ```
 
-## Setup Instructions
-1. **Clone the repository:**
-   ```
-   git clone <repository-url>
-   cd ipl-flask-server
-   ```
+---
 
-2. **Install dependencies:**
-   It is recommended to use a virtual environment. You can create one using:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-   Then install the required packages:
-   ```
-   pip install -r requirements.txt
-   ```
+## Endpoints
 
-3. **Data Files:**
-   Ensure that the `data` directory contains the `deliveries.csv` and `matches.csv` files. These files are essential for the application to function correctly.
+### 1. Get All Teams
 
-## Usage
-To start the Flask server, run:
+**GET** `/teams`
+
+**Response:**
+```json
+{
+  "teams": [
+    "CSK",
+    "MI",
+    "RCB",
+    "KKR",
+    ...
+  ]
+}
 ```
-python app.py
-```
-The server will start on `http://0.0.0.0:5000`. You can access the API endpoints to retrieve data and perform analyses.
 
-## API Endpoints
-- **Health Check:** `GET /health` - Check if the server is running.
-- **Get Teams:** `GET /teams` - Retrieve a list of all teams.
-- **Team Performance:** `GET /team/<team_name>/performance` - Get performance statistics for a specific team.
-- **Season Summary:** `GET /team/<team_name>/seasons` - Get detailed season-wise match summary for a team.
-- **Head-to-Head Analysis:** `GET /head-to-head/<team1>/<team2>` - Get head-to-head analysis between two teams.
-- **Get Venues:** `GET /venues` - Retrieve a list of all venues.
-- **Get Seasons:** `GET /seasons` - Retrieve a list of all seasons.
-- **Get Matches for a Season:** `GET /season/<int:season>/matches` - Get all matches for a specific season.
+---
+
+### 2. Get Team Performance
+
+**GET** `/team/<team_name>/performance`
+
+**Path Parameters:**
+- `team_name` (string): Team short code (e.g., `MI`, `RCB`, `CSK`)
+
+**Response:**
+```json
+{
+  "team": "MI",
+  "total_matches": 210,
+  "wins": 120,
+  "losses": 85,
+  "no_result": 5,
+  "win_ratio": 57.14,
+  "loss_ratio": 40.48,
+  "seasons_played": [2008, 2009, ...],
+  "total_seasons": 15
+}
+```
+
+---
+
+### 3. Get Head-to-Head Stats
+
+**GET** `/head-to-head/<team1>/<team2>`
+
+**Path Parameters:**
+- `team1` (string): Team short code
+- `team2` (string): Team short code
+
+**Response:**
+```json
+{
+  "teams": "MI vs CSK",
+  "basic_stats": {
+    "total_matches": 34,
+    "team1_wins": 19,
+    "team2_wins": 15,
+    "no_results": 0,
+    "team1_win_pct": 55.88,
+    "team2_win_pct": 44.12,
+    "head_to_head_leader": "MI"
+  },
+  "venue_performance": {
+    "Wankhede Stadium": {
+      "total_matches": 10,
+      "team1_wins": 6,
+      "team2_wins": 4,
+      "team1_win_pct": 60.0,
+      "team2_win_pct": 40.0,
+      "venue_leader": "MI"
+    },
+    ...
+  }
+}
+```
+
+---
+
+### 4. Get All Seasons
+
+**GET** `/seasons`
+
+**Response:**
+```json
+{
+  "seasons": [2008, 2009, 2010, ...]
+}
+```
+
+---
+
+### 5. Get Matches for a Season
+
+**GET** `/season/<season>/matches`
+
+**Path Parameters:**
+- `season` (string or int): Season year (e.g., `2020`)
+
+**Response:**
+```json
+{
+  "season": 2020,
+  "total_matches": 60,
+  "matches": [
+    {
+      "match_id": 1,
+      "season": 2020,
+      "team1": "MI",
+      "team2": "CSK",
+      "winner": "CSK",
+      "venue": "Wankhede Stadium",
+      "date": "2020-09-19",
+      "match_type": "League",
+      "toss_winner": "MI",
+      "toss_decision": "bat",
+      "target_runs": 162
+    },
+    ...
+  ]
+}
+```
+
+---
+
+## Error Responses
+
+- `400 Bad Request`: Invalid input or missing parameters.
+- `404 Not Found`: Resource not found.
+- `500 Internal Server Error`: Data not loaded or server error.
+
+---
+
+## Notes
+
+- Team names must use the short codes as per the API (e.g., `MI`, `RCB`, `CSK`).
+- All endpoints return JSON.
+- CORS is enabled for cross-origin requests.
+
+---
+
+## Example Thunder Client Collection
+
+You can import these endpoints into Thunder Client for testing.
+
+```
+GET http://localhost:5000/teams
+GET http://localhost:5000/team/MI/performance
+GET http://localhost:5000/head-to-head/MI/CSK
+GET http://localhost:5000/seasons
+GET http://localhost:5000/season/2020/matches
+```

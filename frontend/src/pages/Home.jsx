@@ -1,96 +1,139 @@
-import React, { useState } from 'react';
-import { Menu, X, ChevronDown, Activity, BarChart3, Trophy, Target } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import TeamSelector from "../components/TeamSelector";
+import SeasonSelector from "../components/SeasonSelector";
+import PerformanceCard from "../components/PerformacneCard";
+import HeadToHeadStats from "../components/HeadToHeadStats";
+import MatchList from "../components/MatchList";
 
-const Home = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+// import from .env file
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+export default function Home() {
+  const [analysisType, setAnalysisType] = useState("team");
+  const [teams, setTeams] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+  const [selectedTeam, setSelectedTeam] = useState("");
+  const [selectedTeam2, setSelectedTeam2] = useState("");
+  const [selectedSeason, setSelectedSeason] = useState("");
+  const [performance, setPerformance] = useState(null);
+  const [headToHead, setHeadToHead] = useState(null);
+  const [matches, setMatches] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/teams`)
+      .then((res) => res.json())
+      .then((data) => setTeams(data.teams));
+    fetch(`${API_BASE}/seasons`)
+      .then((res) => res.json())
+      .then((data) => setSeasons(data.seasons));
+  }, []);
+
+  useEffect(() => {
+    if (analysisType === "team" && selectedTeam) {
+      fetch(`${API_BASE}/team/${selectedTeam}/performance`)
+        .then((res) => res.json())
+        .then(setPerformance);
+    }
+  }, [analysisType, selectedTeam]);
+
+  useEffect(() => {
+    if (
+      analysisType === "head" &&
+      selectedTeam &&
+      selectedTeam2 &&
+      selectedTeam !== selectedTeam2
+    ) {
+      fetch(`${API_BASE}/head-to-head/${selectedTeam}/${selectedTeam2}`)
+        .then((res) => res.json())
+        .then(setHeadToHead);
+    }
+  }, [analysisType, selectedTeam, selectedTeam2]);
+
+  useEffect(() => {
+    if (analysisType === "season" && selectedSeason) {
+      fetch(`${API_BASE}/season/${selectedSeason}/matches`)
+        .then((res) => res.json())
+        .then((data) => setMatches(data.matches || []));
+    }
+  }, [analysisType, selectedSeason]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-sky-200 to-blue-300">
-      {/* Navbar */}
-      <nav className="bg-white/90 backdrop-blur-md border-b border-sky-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-sky-400 to-blue-500 p-2 rounded-full">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <span className="text-sky-800 text-xl font-bold">CricketPro</span>
-            </div>
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-8">
+      <h1 className="text-3xl font-bold text-blue-700 mb-6 text-center">
+        IPL Cricket Analysis Workshop
+      </h1>
+      <div className="flex justify-center gap-8 mb-8">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            value="team"
+            checked={analysisType === "team"}
+            onChange={() => setAnalysisType("team")}
+            className="accent-blue-600"
+          />
+          <span className="font-medium">Team Performance</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            value="head"
+            checked={analysisType === "head"}
+            onChange={() => setAnalysisType("head")}
+            className="accent-blue-600"
+          />
+          <span className="font-medium">Head-to-Head</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            value="season"
+            checked={analysisType === "season"}
+            onChange={() => setAnalysisType("season")}
+            className="accent-blue-600"
+          />
+          <span className="font-medium">Season Matches</span>
+        </label>
+      </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#" className="text-sky-700 hover:text-sky-500 transition-colors duration-200 font-medium">
-                Home
-              </a>
-              <div className="relative group">
-                <button className="text-sky-700 hover:text-sky-500 transition-colors duration-200 font-medium flex items-center space-x-1">
-                  <span>Analysis</span>
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div className="absolute top-full left-0 mt-2 w-48 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-sky-100">
-                  <a href="#" className="block px-4 py-2 text-sky-700 hover:bg-sky-50 rounded-t-lg">Live Match</a>
-                  <a href="#" className="block px-4 py-2 text-sky-700 hover:bg-sky-50">Team Stats</a>
-                  <a href="#" className="block px-4 py-2 text-sky-700 hover:bg-sky-50 rounded-b-lg">Player Stats</a>
-                </div>
-              </div>
-              <a href="#" className="text-sky-700 hover:text-sky-500 transition-colors duration-200 font-medium">
-                Predictions
-              </a>
-              <a href="#" className="text-sky-700 hover:text-sky-500 transition-colors duration-200 font-medium">
-                Matches
-              </a>
-              <a href="#" className="text-sky-700 hover:text-sky-500 transition-colors duration-200 font-medium">
-                News
-              </a>
-            </div>
-
-            {/* CTA Button */}
-            <div className="hidden md:block">
-              <button className="bg-gradient-to-r from-sky-500 to-blue-600 text-white px-6 py-2 rounded-full font-semibold hover:from-sky-600 hover:to-blue-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
-                Get Premium
-              </button>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={toggleMenu}
-                className="text-sky-700 hover:text-sky-500 transition-colors duration-200"
-              >
-                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
-            </div>
-          </div>
+      {analysisType === "team" && (
+        <div>
+          <TeamSelector
+            teams={teams}
+            selected={selectedTeam}
+            onChange={setSelectedTeam}
+          />
+          {performance && <PerformanceCard data={performance} />}
         </div>
+      )}
 
-        {/* Mobile Navigation */}
-        <div className={`md:hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-          <div className="bg-white/90 backdrop-blur-md border-t border-sky-200">
-            <div className="px-4 py-2 space-y-1">
-              <a href="#" className="block text-sky-700 hover:text-sky-500 py-2 font-medium">Home</a>
-              <a href="#" className="block text-sky-700 hover:text-sky-500 py-2 font-medium">Analysis</a>
-              <a href="#" className="block text-sky-700 hover:text-sky-500 py-2 font-medium">Predictions</a>
-              <a href="#" className="block text-sky-700 hover:text-sky-500 py-2 font-medium">Matches</a>
-              <a href="#" className="block text-sky-700 hover:text-sky-500 py-2 font-medium">News</a>
-              <button className="w-full bg-gradient-to-r from-sky-500 to-blue-600 text-white px-4 py-2 rounded-full font-semibold mt-2">
-                Get Premium
-              </button>
-            </div>
-          </div>
+      {analysisType === "head" && (
+        <div className="flex flex-col md:flex-row gap-4">
+          <TeamSelector
+            teams={teams}
+            selected={selectedTeam}
+            onChange={setSelectedTeam}
+            label="Team 1"
+          />
+          <TeamSelector
+            teams={teams}
+            selected={selectedTeam2}
+            onChange={setSelectedTeam2}
+            label="Team 2"
+          />
+          {headToHead && <HeadToHeadStats data={headToHead} />}
         </div>
-      </nav>
+      )}
 
-      {/* Main Body */}
-      <main className="relative min-h-screen">
-        {/* Empty body as requested */}
-      </main>
+      {analysisType === "season" && (
+        <div>
+          <SeasonSelector
+            seasons={seasons}
+            selected={selectedSeason}
+            onChange={setSelectedSeason}
+          />
+          <MatchList matches={matches} />
+        </div>
+      )}
     </div>
   );
-};
-
-export default Home;
+}
