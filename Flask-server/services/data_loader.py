@@ -19,8 +19,8 @@ def load_data() -> bool:
 
         deliveries_df.fillna('-', inplace=True)
         print("Data loaded successfully!")
-        print(matches_df.head())
-        print(deliveries_df.head())
+        # print(matches_df.head())
+        # print(deliveries_df.head())
         return True
     except Exception as e:
         print(f"Error loading data: {e}")
