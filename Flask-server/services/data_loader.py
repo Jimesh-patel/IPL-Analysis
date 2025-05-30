@@ -17,7 +17,8 @@ def load_data() -> bool:
         matches_df['toss_winner'] = matches_df['toss_winner'].map(team_to_state_mapping)
         matches_df['winner'] = matches_df['winner'].map(team_to_state_mapping)
 
-        deliveries_df.fillna('-', inplace=True)
+        deliveries_df.fillna(0, inplace=True)
+        matches_df.fillna(0, inplace=True)
         print("Data loaded successfully!")
         # print(matches_df.head())
         # print(deliveries_df.head())

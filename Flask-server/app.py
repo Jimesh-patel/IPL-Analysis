@@ -2,7 +2,6 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from routes.teams import get_teams, get_team_performance
 from routes.head_to_head import get_head_to_head
-from routes.venues import get_venues
 from routes.seasons import get_seasons, get_season_matches
 from services.data_loader import load_data
 
@@ -21,15 +20,11 @@ def team_performance_route(team_name):
 def head_to_head_route(team1, team2):
     return get_head_to_head(team1, team2)
 
-@app.route('/venues', methods=['GET'])
-def venues_route():
-    return get_venues()
-
 @app.route('/seasons', methods=['GET'])
 def seasons_route():
     return get_seasons()
 
-@app.route('/season/<int:season>/matches', methods=['GET'])
+@app.route('/season/<season>/matches', methods=['GET'])
 def season_matches_route(season):
     return get_season_matches(season)
 
