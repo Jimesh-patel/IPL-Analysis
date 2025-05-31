@@ -9,8 +9,8 @@ const PlayerSeasonsCard = ({ selectedTeam }) => {
   useEffect(() => {
     if (selectedTeam) {
       fetch(`${API_BASE}/team/${selectedTeam}/players`)
-      .then((res) => res.json())
-      .then((data) => setPlayerData(data))
+        .then((res) => res.json())
+        .then((data) => setPlayerData(data))
         .catch((err) => {
           setError(`Failed to load data for ${selectedTeam}`);
           setPlayerData(null);
@@ -23,30 +23,34 @@ const PlayerSeasonsCard = ({ selectedTeam }) => {
   }, [selectedTeam]);
 
   if (error) {
-    return <p className="text-red-500 text-center mt-4">{error}</p>;
+    return (
+      <div className="mt-6 p-4 bg-red-200/90 text-red-800 rounded-lg text-center font-medium backdrop-blur-sm shadow-md">
+        {error}
+      </div>
+    );
   }
 
   if (!playerData || !selectedTeam) {
     return (
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4 drop-shadow-sm">
         Players
       </h2>
-    ); // Don't render anything if no team is selected or data is loading
+    );
   }
 
   return (
-    <div className="mt-4">
-      <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
+    <div className="mt-6 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-transparent bg-gradient-to-r from-indigo-100/50 to-purple-100/50 transition-all duration-300 hover:shadow-2xl">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 drop-shadow-sm">
         {playerData.team} Players
       </h2>
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border border-gray-200">
+        <table className="min-w-full">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b text-left text-xs sm:text-sm font-medium text-gray-700">
+            <tr className="bg-gradient-to-r from-indigo-50 to-purple-50">
+              <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 drop-shadow-sm">
                 Player
               </th>
-              <th className="py-1 sm:py-2 px-2 sm:px-4 border-b text-left text-xs sm:text-sm font-medium text-gray-700">
+              <th className="py-3 px-4 text-left text-sm font-semibold text-gray-700 drop-shadow-sm">
                 Seasons
               </th>
             </tr>
@@ -54,11 +58,14 @@ const PlayerSeasonsCard = ({ selectedTeam }) => {
           <tbody>
             {playerData.players && playerData.players.length > 0 ? (
               playerData.players.map((player, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 border-b text-xs sm:text-sm text-gray-800">
+                <tr
+                  key={index}
+                  className="border-b border-indigo-200/50 hover:bg-indigo-50/50 transition-all duration-200"
+                >
+                  <td className="py-3 px-4 text-sm text-gray-800">
                     {player.player}
                   </td>
-                  <td className="py-1 sm:py-2 px-2 sm:px-4 border-b text-xs sm:text-sm text-gray-800">
+                  <td className="py-3 px-4 text-sm text-gray-800">
                     {player.seasons.join(", ")}
                   </td>
                 </tr>
@@ -67,7 +74,7 @@ const PlayerSeasonsCard = ({ selectedTeam }) => {
               <tr>
                 <td
                   colSpan="2"
-                  className="py-2 px-4 text-center text-sm text-gray-600"
+                  className="py-4 px-4 text-center text-sm text-gray-600 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 rounded-lg"
                 >
                   No players found for {selectedTeam}
                 </td>
