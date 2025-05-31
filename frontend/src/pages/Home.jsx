@@ -4,6 +4,7 @@ import SeasonSelector from "../components/SeasonSelector";
 import PerformanceCard from "../components/PerformacneCard";
 import HeadToHeadStats from "../components/HeadToHeadStats";
 import MatchList from "../components/MatchList";
+import PlayerSeasonsCard from "../components/PlayerSeasonsCard";
 
 // import from .env file
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
@@ -103,6 +104,7 @@ export default function Home() {
             onChange={setSelectedTeam}
           />
           {performance && <PerformanceCard data={performance} />}
+          {selectedTeam && <PlayerSeasonsCard selectedTeam ={selectedTeam}/>}
         </div>
       )}
 

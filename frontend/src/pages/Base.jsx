@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X, Activity } from 'lucide-react';
 import Home from './Home';
-
+import PlayerAnalysis from '../components/PlayerAnalysis';
 const PAGES = [
   { name: 'Home', key: 'home' },
   { name: 'Analysis', key: 'analysis' },
@@ -20,6 +20,8 @@ const Base = () => {
     switch (currentPage) {
       case 'home':
         return <Home />;
+      case 'analysis':
+        return <PlayerAnalysis/>
       default:
         return <div className="p-8 text-center text-sky-700 text-2xl font-semibold">Coming Soon...</div>;
     }
