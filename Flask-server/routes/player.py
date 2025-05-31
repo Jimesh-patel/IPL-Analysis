@@ -119,8 +119,9 @@ def analyze_bowler(bowler_name):
         economy = runs_conceded / overs if overs > 0 else None
         strike_rate = total_balls / wickets if wickets > 0 else None
 
-        dismissals = data[data['dismissal_kind'].notna() & (
+        dismissals = data[data['is_wicket'] != 0 & (
             data['dismissal_kind'] != 'run out')]
+        # print(dismissals)
         wickets_per_match = dismissals.groupby('match_id').size()
 
         runs_per_match = data.groupby('match_id')['total_runs'].sum()
@@ -128,12 +129,14 @@ def analyze_bowler(bowler_name):
             'wickets': wickets_per_match,
             'runs_conceded': runs_per_match
         })
+        # print(bowling_performance)
         bowling_performance = bowling_performance.dropna(subset=['wickets'])
         if bowling_performance.empty:
             best_figures = "0/0"
         else:
             bowling_performance_sorted = bowling_performance.sort_values(
                 by=['wickets', 'runs_conceded'], ascending=[False, True])
+            # print(bowling_performance_sorted)
             best_match = bowling_performance_sorted.iloc[0]
             best_figures = f"{int(best_match['wickets'])}/{int(best_match['runs_conceded'])}"
 

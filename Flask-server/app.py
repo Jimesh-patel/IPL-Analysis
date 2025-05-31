@@ -72,7 +72,7 @@ if __name__ == '__main__':
         
         deliveries_df = data_loader.deliveries_df
         app.config['deliveries_df'] = deliveries_df
-        
+        # print(deliveries_df.tail(20))
         players_performance_df = create_player_performance_df(deliveries_df)
         app.config['player_performance_df'] = players_performance_df
         
