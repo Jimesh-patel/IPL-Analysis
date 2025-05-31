@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Player_Heatmap from "./Player_Heatmap";
 
 const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5000";
 
@@ -95,6 +96,8 @@ const PlayerAnalysis = () => {
       <h1 className="text-2xl font-bold text-center mb-6">
         Player Performance Analysis
       </h1>
+
+      <Player_Heatmap />
 
       {/* Player and Role Selection */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">

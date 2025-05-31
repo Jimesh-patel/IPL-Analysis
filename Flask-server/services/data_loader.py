@@ -10,8 +10,8 @@ def load_data() -> bool:
         deliveries_df = pd.read_csv('data/deliveries.csv')
         matches_df = pd.read_csv('data/matches.csv')
         
-#         deliveries column:
-# Index(['match_id', 'inning', 'batting_team', 'bowling_team', 'over', 'ball',
+#        deliveries column:
+#        Index(['match_id', 'inning', 'batting_team', 'bowling_team', 'over', 'ball',
 #        'batter', 'bowler', 'non_striker', 'batsman_runs', 'extra_runs',
 #        'total_runs', 'extras_type', 'is_wicket', 'player_dismissed',
 #        'dismissal_kind', 'fielder'],

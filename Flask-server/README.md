@@ -1,6 +1,6 @@
 # IPL Analysis Flask API
 
-This Flask server provides a RESTful API for IPL cricket data analysis, including teams, seasons, matches, head-to-head stats, and team performance.
+This Flask server provides a RESTful API for IPL cricket data analysis, including teams, seasons, matches, head-to-head stats, team performance, and player performance analytics.
 
 ## Base URL
 
@@ -138,6 +138,40 @@ http://localhost:5000/
 
 ---
 
+### 6. Get Player Performance Heatmap
+
+**GET** `/player-performance/heatmap?top_n=<int>&sort_by=<stat>&normalize=<true|false>`
+
+**Query Parameters:**
+- `top_n` (int, optional): Number of top players to return (default: 20)
+- `sort_by` (string, optional): Stat to sort by (e.g., `total_runs`, `wickets`)
+- `normalize` (bool, optional): Whether to normalize values (default: true)
+
+**Response:**
+```json
+{
+  "players": ["Player 1", "Player 2", ...],
+  "stats": ["total_runs", "wickets", ...],
+  "values": [[100, 5], [90, 7], ...],              // Raw values
+  "normalized_values": [[1.0, 0.5], [0.9, 0.7], ...] // Min-max normalized values
+}
+```
+
+---
+
+### 7. Get Player Performance Stats (Stat Columns)
+
+**GET** `/player-performance/stats`
+
+**Response:**
+```json
+{
+  "stats": ["total_runs", "wickets", "average", ...]
+}
+```
+
+---
+
 ## Error Responses
 
 - `400 Bad Request`: Invalid input or missing parameters.
@@ -164,4 +198,6 @@ GET http://localhost:5000/team/MI/performance
 GET http://localhost:5000/head-to-head/MI/CSK
 GET http://localhost:5000/seasons
 GET http://localhost:5000/season/2020/matches
+GET http://localhost:5000/player-performance/heatmap
+GET http://localhost:5000/player-performance/stats
 ```

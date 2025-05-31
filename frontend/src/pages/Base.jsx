@@ -3,11 +3,11 @@ import { Menu, X, Activity } from 'lucide-react';
 import Home from './Home';
 import PlayerAnalysis from '../components/PlayerAnalysis';
 const PAGES = [
-  { name: 'Home', key: 'home' },
-  { name: 'Analysis', key: 'analysis' },
+  { name: 'Season', key: 'season' },
+  { name: 'Team analysis', key: 'team' },
+  { name: 'Player analysis', key: 'player' },
   { name: 'Predictions', key: 'predictions' },
   { name: 'Matches', key: 'matches' },
-  { name: 'News', key: 'news' },
 ];
 
 const Base = () => {
@@ -18,9 +18,9 @@ const Base = () => {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'home':
+      case 'team':
         return <Home />;
-      case 'analysis':
+      case 'player':
         return <PlayerAnalysis/>
       default:
         return <div className="p-8 text-center text-sky-700 text-2xl font-semibold">Coming Soon...</div>;

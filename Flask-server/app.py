@@ -4,7 +4,10 @@ from routes.teams import get_teams, get_team_performance,team_players
 from routes.head_to_head import get_head_to_head
 from routes.seasons import get_seasons, get_season_matches
 from routes.player import analyze_batsman,analyze_bowler,players_route
-from services.data_loader import load_data
+from routes.player_performance_stats import get_player_performance_heatmap, get_player_performance_stats
+from services import data_loader
+from services.preprocess_for_player_analysis import create_player_performance_df
+from services.team_season_summary import get_team_season_match_summary
 
 app = Flask(__name__)
 CORS(app)
@@ -46,11 +49,36 @@ def batsman(name):
 def bowler(name):
     return analyze_bowler(name)
 
+@app.route('/team/<team_name>/season-summary', methods=['GET'])
+def team_season_summary_route(team_name):
+    summary = get_team_season_match_summary(team_name)
+    return jsonify(summary)
+
+@app.route('/player-performance/heatmap', methods=['GET'])
+def player_performance_heatmap_route():
+    return get_player_performance_heatmap()
+
+@app.route('/player-performance/stats', methods=['GET'])
+def player_performance_stats_route():
+    return get_player_performance_stats()
+
 
 if __name__ == '__main__':
     print("Loading cricket data...")
-    if load_data():
+    if data_loader.load_data():
+        
+        matches_df = data_loader.matches_df
+        app.config['matches_df'] = matches_df
+        
+        deliveries_df = data_loader.deliveries_df
+        app.config['deliveries_df'] = deliveries_df
+        
+        players_performance_df = create_player_performance_df(deliveries_df)
+        app.config['player_performance_df'] = players_performance_df
+        
         print("Starting Flask server...")
+    
         app.run(debug=True, host='0.0.0.0', port=5000)
     else:
         print("Failed to load data. Please ensure 'matches.csv' and 'deliveries.csv' are in the data directory.")
+

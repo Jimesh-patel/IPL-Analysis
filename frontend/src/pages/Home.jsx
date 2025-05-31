@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import TeamSelector from "../components/TeamSelector";
 import SeasonSelector from "../components/SeasonSelector";
 import PerformanceCard from "../components/PerformacneCard";
@@ -19,6 +19,8 @@ export default function Home() {
   const [performance, setPerformance] = useState(null);
   const [headToHead, setHeadToHead] = useState(null);
   const [matches, setMatches] = useState([]);
+  const [SeasonWiseTeamSummary, setSeasonWiseTeamSummary] = useState([]);
+  
 
   useEffect(() => {
     fetch(`${API_BASE}/teams`)
@@ -34,6 +36,10 @@ export default function Home() {
       fetch(`${API_BASE}/team/${selectedTeam}/performance`)
         .then((res) => res.json())
         .then(setPerformance);
+
+      fetch(`${API_BASE}/team/${selectedTeam}/season-summary`)
+        .then((res) => res.json())
+        .then(setSeasonWiseTeamSummary);
     }
   }, [analysisType, selectedTeam]);
 
@@ -57,6 +63,7 @@ export default function Home() {
         .then((data) => setMatches(data.matches || []));
     }
   }, [analysisType, selectedSeason]);
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-8">
@@ -103,7 +110,7 @@ export default function Home() {
             selected={selectedTeam}
             onChange={setSelectedTeam}
           />
-          {performance && <PerformanceCard data={performance} />}
+          {performance && <PerformanceCard data={performance} seasonSummary={SeasonWiseTeamSummary} />}
           {selectedTeam && <PlayerSeasonsCard selectedTeam ={selectedTeam}/>}
         </div>
       )}

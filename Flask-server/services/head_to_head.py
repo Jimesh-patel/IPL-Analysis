@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import Dict, Any
-from services import data_loader
+from flask import current_app
 
 class HeadToHeadAnalyzer:
     def get_head_to_head_matches(self, matches_df, team1: str, team2: str) -> pd.DataFrame:
@@ -61,7 +61,7 @@ class HeadToHeadAnalyzer:
         return venue_stats
 
     def get_h2h_analysis(self, team1: str, team2: str) -> Dict[str, Any]:
-        matches_df = data_loader.matches_df
+        matches_df = current_app.config['matches_df']
         return {
             'teams': f"{team1} vs {team2}",
             'basic_stats': self.analyze_basic_h2h_stats(matches_df, team1, team2),

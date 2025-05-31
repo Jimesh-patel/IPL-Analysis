@@ -6,7 +6,7 @@ export default function HeadToHeadStats({ data }) {
   const [team1, team2] = teams.split(" vs ");
   return (
     <div className="bg-green-50 rounded-lg p-6 mt-4 shadow w-full">
-      <h2 className="text-xl font-bold text-green-700 mb-2">{teams} Head-to-Head</h2>
+      <h2 className="text-xl font-bold text-green-700 mb-2">{teams}</h2>
       <div className="grid grid-cols-2 gap-2">
         <div>Total Matches: <span className="font-semibold">{basic_stats.total_matches}</span></div>
         <div>{team1} Wins: <span className="font-semibold">{basic_stats.team1_wins} ({basic_stats.team1_win_pct}%)</span></div>
