@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from routes.teams import get_teams, get_team_performance,team_players
 from routes.head_to_head import get_head_to_head
@@ -8,9 +8,12 @@ from routes.player_performance_stats import get_player_performance_heatmap, get_
 from services import data_loader
 from services.preprocess_for_player_analysis import create_player_performance_df
 from services.team_season_summary import get_team_season_match_summary
+from routes.run_predictor import predict_next_over_runs
+
 
 app = Flask(__name__)
 CORS(app)
+
 
 @app.route('/teams', methods=['GET'])
 def teams_route():
@@ -63,6 +66,21 @@ def player_performance_stats_route():
     return get_player_performance_stats()
 
 
+@app.route('/predict-runs', methods=['POST'])
+def predict():
+    data = request.get_json()
+    last_overs = data.get('last_overs')
+    metadata = data.get('metadata')
+    if not last_overs or not metadata:
+        return jsonify({'error': 'Missing input data'}), 400
+    try:
+        predicted_runs = predict_next_over_runs(last_overs, metadata)
+        return jsonify({'predicted_runs': round(predicted_runs, 2)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
 if __name__ == '__main__':
     print("Loading cricket data...")
     if data_loader.load_data():
@@ -78,7 +96,7 @@ if __name__ == '__main__':
         
         print("Starting Flask server...")
     
-        app.run(debug=True, host='0.0.0.0', port=5000)
+        app.run(debug=False, host='0.0.0.0', port=5000)
     else:
         print("Failed to load data. Please ensure 'matches.csv' and 'deliveries.csv' are in the data directory.")
 
