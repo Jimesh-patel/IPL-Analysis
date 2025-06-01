@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Menu, X, Activity } from 'lucide-react';
 import Home from './Home';
 import PlayerAnalysis from '../components/PlayerAnalysis';
+import Prediction from '../pages/Prediction';
+
 const PAGES = [
   { name: 'Season', key: 'season' },
   { name: 'Team analysis', key: 'team' },
@@ -22,6 +24,8 @@ const Base = () => {
         return <Home />;
       case 'player':
         return <PlayerAnalysis/>
+      case 'predictions':
+        return <Prediction />
       default:
         return <div className="p-8 text-center text-sky-700 text-2xl font-semibold">Coming Soon...</div>;
     }
