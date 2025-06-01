@@ -44,7 +44,7 @@ const Base = () => {
                   key={page.key}
                   onClick={() => setCurrentPage(page.key)}
                   className={`text-sky-700 hover:text-sky-500 transition-colors duration-200 font-medium ${
-                    currentPage === page.key ? 'underline underline-offset-4' : ''
+                    currentPage === page.key ? 'hover:text-sky-700' : ''
                   }`}
                 >
                   {page.name}

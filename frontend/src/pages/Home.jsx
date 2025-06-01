@@ -20,7 +20,7 @@ export default function Home() {
   const [headToHead, setHeadToHead] = useState(null);
   const [matches, setMatches] = useState([]);
   const [SeasonWiseTeamSummary, setSeasonWiseTeamSummary] = useState([]);
-  
+
 
   useEffect(() => {
     fetch(`${API_BASE}/teams`)
@@ -111,24 +111,26 @@ export default function Home() {
             onChange={setSelectedTeam}
           />
           {performance && <PerformanceCard data={performance} seasonSummary={SeasonWiseTeamSummary} />}
-          {selectedTeam && <PlayerSeasonsCard selectedTeam ={selectedTeam}/>}
+          {selectedTeam && <PlayerSeasonsCard selectedTeam={selectedTeam} />}
         </div>
       )}
 
       {analysisType === "head" && (
-        <div className="flex flex-col md:flex-row gap-4">
-          <TeamSelector
-            teams={teams}
-            selected={selectedTeam}
-            onChange={setSelectedTeam}
-            label="Team 1"
-          />
-          <TeamSelector
-            teams={teams}
-            selected={selectedTeam2}
-            onChange={setSelectedTeam2}
-            label="Team 2"
-          />
+        <div className="">
+          <div className="justify-evenly flex flex-row gap-10 ">
+            <TeamSelector
+              teams={teams}
+              selected={selectedTeam}
+              onChange={setSelectedTeam}
+              label="Team 1"
+            />
+            <TeamSelector
+              teams={teams}
+              selected={selectedTeam2}
+              onChange={setSelectedTeam2}
+              label="Team 2"
+            />
+          </div>
           {headToHead && <HeadToHeadStats data={headToHead} />}
         </div>
       )}
