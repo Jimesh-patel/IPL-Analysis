@@ -3,6 +3,7 @@ import { Menu, X, Activity } from 'lucide-react';
 import Home from './Home';
 import PlayerAnalysis from '../components/PlayerAnalysis';
 import Prediction from '../pages/Prediction';
+import Live_match from './Live_match';
 
 const PAGES = [
   { name: 'Season', key: 'season' },
@@ -26,6 +27,8 @@ const Base = () => {
         return <PlayerAnalysis/>
       case 'predictions':
         return <Prediction />
+      case 'matches':
+        return <Live_match />
       default:
         return <div className="p-8 text-center text-sky-700 text-2xl font-semibold">Coming Soon...</div>;
     }
