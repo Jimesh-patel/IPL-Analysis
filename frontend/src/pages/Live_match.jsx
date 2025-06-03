@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
+import RunsOverGraph from "../components/RunsOverGraph";
 
 const Live_match = () => {
     const [liveMatches, setLiveMatches] = useState([]);
     const [selectedMatch, setSelectedMatch] = useState(null);
     const [score, setScore] = useState(null);
-    const [intervalId, setIntervalId] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
 
     const fetchLiveMatches = async () => {
+        setLoading(true);
         try {
             const url = 'https://cricbuzz-cricket.p.rapidapi.com/matches/v1/live';
             const options = {
@@ -21,7 +23,6 @@ const Live_match = () => {
 
             const res = await fetch(url, options);
             const data = await res.json();
-            console.log("Fetched Matches:", data);
 
             let iplMatches = [];
             if (Array.isArray(data.typeMatches)) {
@@ -54,9 +55,11 @@ const Live_match = () => {
         } catch (error) {
             console.error("Error fetching matches:", error);
         }
+        setLoading(false);
     };
 
     const fetchScore = async (matchId) => {
+        setLoading(true);
         try {
             const url = `https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/${matchId}/scard`;
             const options = {
@@ -69,110 +72,172 @@ const Live_match = () => {
 
             const res = await fetch(url, options);
             const data = await res.json();
-            console.log("Fetched Score:", data);
             setScore(data);
         } catch (error) {
             console.error("Error fetching score:", error);
         }
+        setLoading(false);
     };
 
     const handleMatchSelect = (match) => {
         setSelectedMatch(match);
-        console.log("Selected Match:", match);
         fetchScore(match.matchId);
-
-        if (intervalId) clearInterval(intervalId);
-
-        const newInterval = setInterval(() => fetchScore(match.matchId), 600000);
-        setIntervalId(newInterval);
     };
 
-    useEffect(() => {
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [intervalId]);
+    const handleRefreshScore = () => {
+        if (selectedMatch) {
+            fetchScore(selectedMatch.matchId);
+        }
+    };
+
+    const getCurrentBatsmen = (inning) => {
+        return inning.batsman?.filter(b =>
+            b.outDec === "batting" || b.outDec === undefined
+        ).slice(0, 2) || [];
+    };
+
+    const getCurrentBowler = (inning) => {
+        return inning.bowler?.find(b => b.name && b.overs) || null;
+    };
 
     return (
-        <div className="p-6 font-sans">
-            <h1 className="text-3xl font-bold mb-4">🏏 IPL Live Match</h1>
+        <div className="p-4 max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold mb-4 text-center">🏏 IPL Live Matches</h1>
 
-            <button
-                onClick={fetchLiveMatches}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded mb-6"
-            >
-                🔄 Fetch Live Matches
-            </button>
+            <div className="flex gap-4 mb-6 justify-center">
+                <button
+                    onClick={fetchLiveMatches}
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded"
+                >
+                    {loading ? "Loading..." : "Fetch Live Matches"}
+                </button>
 
-            <div className="flex flex-wrap gap-4">
+                {selectedMatch && (
+                    <button
+                        onClick={handleRefreshScore}
+                        disabled={loading}
+                        className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded"
+                    >
+                        {loading ? "Refreshing..." : "Refresh Score"}
+                    </button>
+                )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {liveMatches.length === 0 ? (
-                    <p className="text-gray-600 text-lg"> No live IPL matches found. </p>
+                    <div className="col-span-full text-center py-4">
+                        <p className="text-gray-600"> No match available. </p>
+                    </div>
                 ) : (
                     liveMatches.map((match) => (
                         <div
                             key={match.matchId}
                             onClick={() => handleMatchSelect(match)}
-                            className={`border p-4 rounded-md shadow-md cursor-pointer w-64 hover:bg-gray-100 ${selectedMatch?.matchId === match.matchId ? "bg-gray-100 border-blue-500" : "bg-white"
+                            className={`border p-4 rounded cursor-pointer ${selectedMatch?.matchId === match.matchId
+                                ? "border-blue-500 bg-blue-50"
+                                : "border-gray-300 hover:bg-gray-50"
                                 }`}
                         >
-                            <h3>matchId : {match.matchId}</h3>
-                            <h3 className="font-semibold text-lg">
+                            <h3 className="font-bold text-lg">
                                 {match.team1.teamName} vs {match.team2.teamName}
                             </h3>
-                            <p className="text-sm text-gray-700 mt-1">
-                                <strong>Status:</strong> {match.status}
-                            </p>
-                            {match.matchScore && match.matchScore.team1Score && (
-                                <p className="text-sm text-gray-700 mt-1">
-                                    <strong>Score:</strong> {match.matchScore.team1Score.inngs1?.runs}/{match.matchScore.team1Score.inngs1?.wickets} ({match.matchScore.team1Score.inngs1?.overs} ov)
-                                </p>
-                            )}
+                            <p className="text-sm text-gray-600">Status: {match.status}</p>
+                            <p className="text-sm text-gray-600">Venue: {match.venueInfo?.ground || "TBA"}</p>
                         </div>
-                    ))
-                )}
+                    )))
+                }
             </div>
 
-            {selectedMatch && score && (
-                <div className="mt-10">
-                    <h2 className="text-2xl font-semibold mb-2">
-                        🏟️ {selectedMatch.venueInfo?.ground || "Unknown Ground"}
-                    </h2>
-                    <h3 className="text-xl mb-2">
-                        {selectedMatch.team1.teamName} vs {selectedMatch.team2.teamName}
-                    </h3>
-                    <p className="mb-2 text-gray-700">
-                        <strong>Status:</strong> {score.status || selectedMatch.status}
-                    </p>
+            {selectedMatch && score && score.scorecard && (
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div className="bg-green-700 text-white p-3 rounded-t-lg">
+                        <div className="text-center">
+                            <h2 className="text-lg font-semibold">
+                                {selectedMatch.team1.teamName} vs {selectedMatch.team2.teamName}
+                            </h2>
+                            <p className="text-sm opacity-90">{selectedMatch.venueInfo?.ground}</p>
+                            <p className="text-sm opacity-90">{score.status}</p>
+                        </div>
+                    </div>
 
-                    {score.scorecard?.map((inning, index) => (
-                        <div key={index} className="mb-6 p-4 border rounded-lg bg-gray-50">
-                            <h3 className="text-lg font-bold mb-1">{inning.batTeamName}</h3>
-                            <p className="text-gray-700 mb-2">
-                                <strong>Score:</strong> {inning.score}/{inning.wickets} in {inning.overs} overs
-                            </p>
-                            <div className="mb-2">
-                                <h4 className="font-semibold">🎯 Current Bowler(s)</h4>
-                                {inning.bowler?.slice(0, 2).map((b) => (
-                                    <p key={b.id || b.bowlId} className="text-gray-700">
-                                        {b.name || b.bowlName} - {b.overs} overs, Econ: {b.economy}
-                                    </p>
-                                ))}
+                    {score.scorecard.map((inning, index) => (
+                        <div key={index} className="border-b border-gray-200 last:border-b-0">
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-bold text-lg">{inning.batTeamName}</h3>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold">
+                                            {inning.score || 0}/{inning.wickets || 0}
+                                        </div>
+                                        <div className="text-sm text-gray-600">
+                                            ({inning.overs} overs)
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <h4 className="font-semibold">🧠 Current Batsmen</h4>
-                                {inning.batsman?.filter(b => b.outDec === "batting" || b.outDec === undefined).slice(0, 2).map((b) => (
-                                    <p key={b.id || b.batId} className="text-gray-700">
-                                        {b.name || b.batName} - {b.runs} runs ({b.balls} balls), SR: {b.strkRate || b.strikeRate}
-                                    </p>
-                                ))}
+
+                            <div className="p-4">
+                                {getCurrentBatsmen(inning).length > 0 && (
+                                    <div className="mb-4">
+                                        <h4 className="font-semibold text-green-700 mb-2">Batting</h4>
+                                        {getCurrentBatsmen(inning).map((batsman, idx) => (
+                                            <div key={idx} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
+                                                <div className="flex items-center">
+                                                    <span className="font-medium">{batsman.name || batsman.batName}</span>
+                                                    <span className="text-green-600 text-sm ml-2">*</span>
+                                                </div>
+                                                <div className="flex gap-4 text-sm">
+                                                    <span className="font-semibold">{batsman.runs}</span>
+                                                    <span className="text-gray-600">({batsman.balls}b)</span>
+                                                    <span className="text-gray-600">SR: {batsman.strkRate || batsman.strikeRate}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {getCurrentBowler(inning) && (
+                                    <div>
+                                        <h4 className="font-semibold text-red-700 mb-2">Bowling</h4>
+                                        <div className="flex justify-between items-center py-1">
+                                            <div className="flex items-center">
+                                                <span className="font-medium">{getCurrentBowler(inning).name || getCurrentBowler(inning).bowlName}</span>
+                                                <span className="text-red-600 text-sm ml-2">*</span>
+                                            </div>
+                                            <div className="flex gap-4 text-sm">
+                                                <span className="text-gray-600">{getCurrentBowler(inning).overs} ov</span>
+                                                <span className="text-gray-600">Econ: {getCurrentBowler(inning).economy}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {getCurrentBatsmen(inning).length === 2 && (
+                                    <div className="mt-3 pt-3 border-t border-gray-200">
+                                        <p className="text-sm text-gray-600">
+                                            Partnership: {
+                                                Number(getCurrentBatsmen(inning)[0]?.runs || 0) +
+                                                Number(getCurrentBatsmen(inning)[1]?.runs || 0)
+                                            } runs
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
                 </div>
             )}
+
+
+            {selectedMatch && score && score.scorecard && (
+                <div className="mt-6">
+                    <RunsOverGraph score={score} />
+                </div>
+            )}
+
         </div>
     );
 };
 
 export default Live_match;
-
