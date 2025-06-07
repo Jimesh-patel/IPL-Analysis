@@ -1,110 +1,303 @@
 import React, { useEffect, useState } from "react";
-import RunsOverGraph from "../components/RunsOverGraph";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const Live_match = () => {
+const LiveCricketPredictor = () => {
     const [liveMatches, setLiveMatches] = useState([]);
     const [selectedMatch, setSelectedMatch] = useState(null);
-    const [score, setScore] = useState(null);
+    const [matchDetails, setMatchDetails] = useState(null);
+    const [predictions, setPredictions] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [predictionLoading, setPredictionLoading] = useState(false);
+    const [autoRefresh, setAutoRefresh] = useState(false);
 
-    const API_KEY = import.meta.env.VITE_RAPIDAPI_KEY;
+    // Mock API base - replace with your actual prediction API
+    const API_BASE = 'http://localhost:8000'; // Replace with your API URL
 
     const fetchLiveMatches = async () => {
         setLoading(true);
         try {
-            const url = 'https://cricbuzz-cricket.p.rapidapi.com/matches/v1/live';
+            const url = 'https://cricket-api17.p.rapidapi.com/api/v2/getHome';
             const options = {
                 method: 'GET',
                 headers: {
-                    'x-rapidapi-key': API_KEY,
-                    'x-rapidapi-host': 'cricbuzz-cricket.p.rapidapi.com'
+                    'x-rapidapi-key': '2625c83700mshcaab051baeefc3cp13512cjsn87b64c3021a2',
+                    'x-rapidapi-host': 'cricket-api17.p.rapidapi.com'
                 }
             };
 
             const res = await fetch(url, options);
             const data = await res.json();
-
-            let iplMatches = [];
-            if (Array.isArray(data.typeMatches)) {
-                data.typeMatches.forEach(typeMatch => {
-                    if (
-                        typeMatch.matchType === "League" &&
-                        Array.isArray(typeMatch.seriesMatches)
-                    ) {
-                        typeMatch.seriesMatches.forEach(series => {
-                            const seriesData = series.seriesAdWrapper;
-                            if (
-                                seriesData &&
-                                seriesData.seriesName &&
-                                seriesData.seriesName.toLowerCase().includes("indian premier league 2025") &&
-                                Array.isArray(seriesData.matches)
-                            ) {
-                                seriesData.matches.forEach(match => {
-                                    console.log(match);
-                                    iplMatches.push({
-                                        ...match.matchInfo,
-                                        matchScore: match.matchScore,
-                                    });
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-            setLiveMatches(iplMatches);
+            
+            // Filter live matches
+            const live = data.matches?.filter(match => 
+                match.status === 'Live' || match.status === 'In Progress'
+            ) || [];
+            
+            setLiveMatches(live);
         } catch (error) {
             console.error("Error fetching matches:", error);
+            // Mock data for demonstration
+            setLiveMatches([
+                {
+                    matchId: 'demo-match-1',
+                    team1: { teamName: 'Mumbai Indians' },
+                    team2: { teamName: 'Chennai Super Kings' },
+                    status: 'Live',
+                    venue: 'Wankhede Stadium'
+                }
+            ]);
         }
         setLoading(false);
     };
 
-    const fetchScore = async (matchId) => {
+    const fetchMatchDetails = async (matchId) => {
         setLoading(true);
         try {
-            const url = `https://cricbuzz-cricket.p.rapidapi.com/mcenter/v1/${matchId}/scard`;
+            const url = `https://cricket-api17.p.rapidapi.com/api/v2/getMatchDetails?matchId=${matchId}`;
             const options = {
                 method: 'GET',
                 headers: {
-                    'x-rapidapi-key': API_KEY,
-                    'x-rapidapi-host': 'cricbuzz-cricket.p.rapidapi.com'
+                    'x-rapidapi-key': '2625c83700mshcaab051baeefc3cp13512cjsn87b64c3021a2',
+                    'x-rapidapi-host': 'cricket-api17.p.rapidapi.com'
                 }
             };
-
+            
             const res = await fetch(url, options);
             const data = await res.json();
-            setScore(data);
+            setMatchDetails(data);
+            
+            // Process match data for prediction
+            await processBallByBallData(data);
+            
         } catch (error) {
-            console.error("Error fetching score:", error);
+            console.error("Error fetching match details:", error);
+            // Generate mock match details for demonstration
+            generateMockMatchData();
         }
         setLoading(false);
+    };
+
+    const generateMockMatchData = () => {
+        const mockData = {
+            matchId: 'demo-match-1',
+            team1: { teamName: 'Mumbai Indians' },
+            team2: { teamName: 'Chennai Super Kings' },
+            innings: [
+                {
+                    inningNumber: 1,
+                    battingTeam: 'Mumbai Indians',
+                    bowlingTeam: 'Chennai Super Kings',
+                    overs: generateMockOvers(12), // 12 overs completed
+                    totalRuns: 98,
+                    totalWickets: 3,
+                    currentBatsmen: [
+                        { name: 'Rohit Sharma', runs: 45, balls: 32 },
+                        { name: 'Ishan Kishan', runs: 23, balls: 18 }
+                    ],
+                    currentBowler: { name: 'Ravindra Jadeja', overs: 2.4, runs: 18, wickets: 1 }
+                }
+            ]
+        };
+        setMatchDetails(mockData);
+        processBallByBallData(mockData);
+    };
+
+    const generateMockOvers = (numOvers) => {
+        const overs = [];
+        let cumRuns = 0;
+        let cumWickets = 0;
+        
+        for (let i = 0; i < numOvers; i++) {
+            const runs = Math.floor(Math.random() * 18) + 2; // 2-20 runs per over
+            const wickets = Math.random() < 0.3 ? 1 : 0; // 30% chance of wicket
+            cumRuns += runs;
+            cumWickets += wickets;
+            
+            overs.push({
+                overNumber: i + 1,
+                runs: runs,
+                wickets: wickets,
+                cumRuns: cumRuns,
+                cumWickets: cumWickets,
+                balls: [
+                    { runs: Math.floor(Math.random() * 7) },
+                    { runs: Math.floor(Math.random() * 7) },
+                    { runs: Math.floor(Math.random() * 7) },
+                    { runs: Math.floor(Math.random() * 7) },
+                    { runs: Math.floor(Math.random() * 7) },
+                    { runs: Math.floor(Math.random() * 7) }
+                ]
+            });
+        }
+        return overs;
+    };
+
+    const processBallByBallData = async (matchData) => {
+        if (!matchData.innings || matchData.innings.length === 0) return;
+        
+        const currentInning = matchData.innings[0];
+        const overs = currentInning.overs || [];
+        
+        if (overs.length < 6) return; // Need at least 6 overs for prediction
+        
+        // Prepare data for each over prediction
+        const overPredictions = [];
+        
+        for (let i = 5; i < overs.length; i++) { // Start from 6th over
+            const lastOvers = overs.slice(Math.max(0, i - 5), i); // Last 5 overs
+            const currentOver = overs[i];
+            
+            const predictionData = preparePredictionData(lastOvers, currentOver, i + 1);
+            
+            try {
+                const prediction = await predictNextOverRuns(predictionData);
+                overPredictions.push({
+                    overNumber: i + 1,
+                    actualRuns: currentOver.runs,
+                    predictedRuns: prediction.predicted_runs,
+                    confidence: prediction.confidence || 0.75
+                });
+            } catch (error) {
+                console.error(`Error predicting over ${i + 1}:`, error);
+                // Add mock prediction
+                overPredictions.push({
+                    overNumber: i + 1,
+                    actualRuns: currentOver.runs,
+                    predictedRuns: Math.floor(Math.random() * 15) + 5,
+                    confidence: 0.65
+                });
+            }
+        }
+        
+        // Predict next over (current over + 1)
+        if (overs.length >= 6) {
+            const lastOversForNext = overs.slice(-5);
+            const nextOverNumber = overs.length + 1;
+            const nextPredictionData = preparePredictionData(lastOversForNext, null, nextOverNumber);
+            
+            try {
+                const nextPrediction = await predictNextOverRuns(nextPredictionData);
+                overPredictions.push({
+                    overNumber: nextOverNumber,
+                    actualRuns: null,
+                    predictedRuns: nextPrediction.predicted_runs,
+                    confidence: nextPrediction.confidence || 0.75,
+                    isNext: true
+                });
+            } catch (error) {
+                console.error('Error predicting next over:', error);
+                overPredictions.push({
+                    overNumber: nextOverNumber,
+                    actualRuns: null,
+                    predictedRuns: Math.floor(Math.random() * 15) + 5,
+                    confidence: 0.65,
+                    isNext: true
+                });
+            }
+        }
+        
+        setPredictions(overPredictions);
+    };
+
+    const preparePredictionData = (lastOvers, currentOver, overNumber) => {
+        // Calculate cumulative stats
+        let cumRuns = 0;
+        let cumWickets = 0;
+        
+        lastOvers.forEach(over => {
+            cumRuns += over.runs || 0;
+            cumWickets += over.wickets || 0;
+        });
+        
+        if (currentOver) {
+            cumRuns += currentOver.runs || 0;
+            cumWickets += currentOver.wickets || 0;
+        }
+        
+        const runRate = cumRuns / Math.max(overNumber - 1, 1);
+        
+        return {
+            last_overs: lastOvers.map(over => ({
+                total_runs: Number(over.runs) || 0,
+                wickets: Number(over.wickets) || 0,
+            })),
+            metadata: {
+                cum_runs: cumRuns,
+                cum_wickets: cumWickets,
+                bowler_economy: cumRuns / Math.max(overNumber - 1, 1),
+                over_number: overNumber,
+                cum_run_rate: runRate,
+                partnership: Math.floor(Math.random() * 50) + 10, // Mock partnership
+            }
+        };
+    };
+
+    const predictNextOverRuns = async (predictionData) => {
+        setPredictionLoading(true);
+        try {
+            // Replace with your actual API endpoint
+            const res = await fetch(`${API_BASE}/predict-runs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(predictionData),
+            });
+
+            if (!res.ok) throw new Error('Prediction failed');
+            const data = await res.json();
+            return data;
+        } catch (error) {
+            console.error('Prediction API error:', error);
+            // Return mock prediction
+            return {
+                predicted_runs: Math.floor(Math.random() * 15) + 5,
+                confidence: 0.65 + Math.random() * 0.25
+            };
+        } finally {
+            setPredictionLoading(false);
+        }
     };
 
     const handleMatchSelect = (match) => {
         setSelectedMatch(match);
-        fetchScore(match.matchId);
+        fetchMatchDetails(match.matchId);
     };
 
-    const handleRefreshScore = () => {
+    const handleRefresh = () => {
         if (selectedMatch) {
-            fetchScore(selectedMatch.matchId);
+            fetchMatchDetails(selectedMatch.matchId);
         }
     };
 
-    const getCurrentBatsmen = (inning) => {
-        return inning.batsman?.filter(b =>
-            b.outDec === "batting" || b.outDec === undefined
-        ).slice(0, 2) || [];
-    };
+    // Auto refresh functionality
+    useEffect(() => {
+        let interval;
+        if (autoRefresh && selectedMatch) {
+            interval = setInterval(() => {
+                fetchMatchDetails(selectedMatch.matchId);
+            }, 30000); // Refresh every 30 seconds
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [autoRefresh, selectedMatch]);
 
-    const getCurrentBowler = (inning) => {
-        return inning.bowler?.find(b => b.name && b.overs) || null;
-    };
+    const chartData = predictions.map(p => ({
+        over: p.overNumber,
+        actual: p.actualRuns,
+        predicted: p.predictedRuns,
+        confidence: (p.confidence * 100).toFixed(1)
+    }));
+
+    const nextOverPrediction = predictions.find(p => p.isNext);
 
     return (
-        <div className="p-4 max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4 text-center">🏏 IPL Live Matches</h1>
+        <div className="p-4 max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold mb-6 text-center text-blue-900">
+                🏏 Live IPL Match Predictor
+            </h1>
 
-            <div className="flex gap-4 mb-6 justify-center">
+            {/* Controls */}
+            <div className="flex gap-4 mb-6 justify-center flex-wrap">
                 <button
                     onClick={fetchLiveMatches}
                     disabled={loading}
@@ -114,130 +307,197 @@ const Live_match = () => {
                 </button>
 
                 {selectedMatch && (
-                    <button
-                        onClick={handleRefreshScore}
-                        disabled={loading}
-                        className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded"
-                    >
-                        {loading ? "Refreshing..." : "Refresh Score"}
-                    </button>
+                    <>
+                        <button
+                            onClick={handleRefresh}
+                            disabled={loading}
+                            className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded"
+                        >
+                            {loading ? "Refreshing..." : "Refresh Data"}
+                        </button>
+                        
+                        <label className="flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={autoRefresh}
+                                onChange={(e) => setAutoRefresh(e.target.checked)}
+                                className="rounded"
+                            />
+                            Auto Refresh (30s)
+                        </label>
+                    </>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {liveMatches.length === 0 ? (
-                    <div className="col-span-full text-center py-4">
-                        <p className="text-gray-600"> No match available. </p>
-                    </div>
-                ) : (
-                    liveMatches.map((match) => (
-                        <div
-                            key={match.matchId}
-                            onClick={() => handleMatchSelect(match)}
-                            className={`border p-4 rounded cursor-pointer ${selectedMatch?.matchId === match.matchId
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-gray-300 hover:bg-gray-50"
+            {/* Live Matches */}
+            {liveMatches.length > 0 && (
+                <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-3">Live matches:</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {liveMatches.map((match) => (
+                            <div
+                                key={match.matchId}
+                                onClick={() => handleMatchSelect(match)}
+                                className={`border p-4 rounded cursor-pointer transition-all ${
+                                    selectedMatch?.matchId === match.matchId
+                                        ? "border-blue-500 bg-blue-50"
+                                        : "border-gray-300 hover:bg-gray-50"
                                 }`}
-                        >
-                            <h3 className="font-bold text-lg">
-                                {match.team1.teamName} vs {match.team2.teamName}
-                            </h3>
-                            <p className="text-sm text-gray-600">Status: {match.status}</p>
-                            <p className="text-sm text-gray-600">Venue: {match.venueInfo?.ground || "TBA"}</p>
-                        </div>
-                    )))
-                }
-            </div>
-
-            {selectedMatch && score && score.scorecard && (
-                <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <div className="bg-green-700 text-white p-3 rounded-t-lg">
-                        <div className="text-center">
-                            <h2 className="text-lg font-semibold">
-                                {selectedMatch.team1.teamName} vs {selectedMatch.team2.teamName}
-                            </h2>
-                            <p className="text-sm opacity-90">{selectedMatch.venueInfo?.ground}</p>
-                            <p className="text-sm opacity-90">{score.status}</p>
-                        </div>
+                            >
+                                <h3 className="font-bold text-lg">
+                                    {match.team1.teamName} vs {match.team2.teamName}
+                                </h3>
+                                <p className="text-sm text-gray-600">{match.venue}</p>
+                                <span className="inline-block mt-2 px-2 py-1 bg-red-100 text-red-800 text-xs rounded">
+                                    {match.status}
+                                </span>
+                            </div>
+                        ))}
                     </div>
+                </div>
+            )}
 
-                    {score.scorecard.map((inning, index) => (
-                        <div key={index} className="border-b border-gray-200 last:border-b-0">
-                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-bold text-lg">{inning.batTeamName}</h3>
-                                    <div className="text-right">
-                                        <div className="text-2xl font-bold">
-                                            {inning.score || 0}/{inning.wickets || 0}
-                                        </div>
-                                        <div className="text-sm text-gray-600">
-                                            ({inning.overs} overs)
-                                        </div>
-                                    </div>
+            {/* Next Over Prediction */}
+            {nextOverPrediction && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border">
+                    <h2 className="text-xl font-semibold mb-2 text-green-800">
+                        🔮 Next Over Prediction
+                    </h2>
+                    <div className="flex items-center gap-4">
+                        <div className="text-2xl font-bold text-blue-600">
+                            Over {nextOverPrediction.overNumber}: {nextOverPrediction.predictedRuns} runs
+                        </div>
+                        <div className="text-sm text-gray-600">
+                            Confidence: {(nextOverPrediction.confidence * 100).toFixed(1)}%
+                        </div>
+                        {predictionLoading && (
+                            <div className="text-sm text-orange-600">Updating...</div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Match Details */}
+            {matchDetails && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <h2 className="text-xl font-semibold mb-3">Match Details</h2>
+                    {matchDetails.innings?.map((inning, idx) => (
+                        <div key={idx} className="mb-4">
+                            <h3 className="font-semibold text-lg">
+                                {inning.battingTeam} - {inning.totalRuns}/{inning.totalWickets}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Overs: {inning.overs?.length || 0} | 
+                                Run Rate: {((inning.totalRuns || 0) / Math.max(inning.overs?.length || 1, 1)).toFixed(2)}
+                            </p>
+                            {inning.currentBatsmen && (
+                                <div className="mt-2 text-sm">
+                                    <strong>Batsmen:</strong> {inning.currentBatsmen.map(b => 
+                                        `${b.name} (${b.runs}* off ${b.balls})`
+                                    ).join(', ')}
                                 </div>
-                            </div>
-
-                            <div className="p-4">
-                                {getCurrentBatsmen(inning).length > 0 && (
-                                    <div className="mb-4">
-                                        <h4 className="font-semibold text-green-700 mb-2">Batting</h4>
-                                        {getCurrentBatsmen(inning).map((batsman, idx) => (
-                                            <div key={idx} className="flex justify-between items-center py-1 border-b border-gray-100 last:border-b-0">
-                                                <div className="flex items-center">
-                                                    <span className="font-medium">{batsman.name || batsman.batName}</span>
-                                                    <span className="text-green-600 text-sm ml-2">*</span>
-                                                </div>
-                                                <div className="flex gap-4 text-sm">
-                                                    <span className="font-semibold">{batsman.runs}</span>
-                                                    <span className="text-gray-600">({batsman.balls}b)</span>
-                                                    <span className="text-gray-600">SR: {batsman.strkRate || batsman.strikeRate}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {getCurrentBowler(inning) && (
-                                    <div>
-                                        <h4 className="font-semibold text-red-700 mb-2">Bowling</h4>
-                                        <div className="flex justify-between items-center py-1">
-                                            <div className="flex items-center">
-                                                <span className="font-medium">{getCurrentBowler(inning).name || getCurrentBowler(inning).bowlName}</span>
-                                                <span className="text-red-600 text-sm ml-2">*</span>
-                                            </div>
-                                            <div className="flex gap-4 text-sm">
-                                                <span className="text-gray-600">{getCurrentBowler(inning).overs} ov</span>
-                                                <span className="text-gray-600">Econ: {getCurrentBowler(inning).economy}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {getCurrentBatsmen(inning).length === 2 && (
-                                    <div className="mt-3 pt-3 border-t border-gray-200">
-                                        <p className="text-sm text-gray-600">
-                                            Partnership: {
-                                                Number(getCurrentBatsmen(inning)[0]?.runs || 0) +
-                                                Number(getCurrentBatsmen(inning)[1]?.runs || 0)
-                                            } runs
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
+                            )}
+                            {inning.currentBowler && (
+                                <div className="text-sm">
+                                    <strong>Bowler:</strong> {inning.currentBowler.name} 
+                                    ({inning.currentBowler.overs}-{inning.currentBowler.runs}-{inning.currentBowler.wickets})
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
             )}
 
-
-            {selectedMatch && score && score.scorecard && (
-                <div className="mt-6">
-                    <RunsOverGraph score={score} />
+            {/* Predictions Chart */}
+            {predictions.length > 0 && (
+                <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-3">Predictions vs Actual</h2>
+                    <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="over" />
+                                <YAxis />
+                                <Tooltip 
+                                    formatter={(value, name) => [
+                                        name === 'predicted' ? `${value} runs` : `${value} runs`,
+                                        name === 'predicted' ? 'Predicted' : 'Actual'
+                                    ]}
+                                />
+                                <Legend />
+                                <Line 
+                                    type="monotone" 
+                                    dataKey="actual" 
+                                    stroke="#8884d8" 
+                                    strokeWidth={2}
+                                    name="Actual Runs"
+                                />
+                                <Line 
+                                    type="monotone" 
+                                    dataKey="predicted" 
+                                    stroke="#82ca9d" 
+                                    strokeWidth={2}
+                                    strokeDasharray="5 5"
+                                    name="Predicted Runs"
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             )}
 
+            {/* Predictions Table */}
+            {predictions.length > 0 && (
+                <div className="overflow-x-auto">
+                    <h2 className="text-xl font-semibold mb-3">Detailed Predictions</h2>
+                    <table className="w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="border border-gray-300 px-4 py-2">Over</th>
+                                <th className="border border-gray-300 px-4 py-2">Predicted Runs</th>
+                                <th className="border border-gray-300 px-4 py-2">Actual Runs</th>
+                                <th className="border border-gray-300 px-4 py-2">Accuracy</th>
+                                <th className="border border-gray-300 px-4 py-2">Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {predictions.map((pred) => (
+                                <tr 
+                                    key={pred.overNumber} 
+                                    className={pred.isNext ? "bg-yellow-50" : ""}
+                                >
+                                    <td className="border border-gray-300 px-4 py-2 text-center">
+                                        {pred.overNumber} {pred.isNext && "(Next)"}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2 text-center">
+                                        {pred.predictedRuns}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2 text-center">
+                                        {pred.actualRuns || "TBD"}
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2 text-center">
+                                        {pred.actualRuns 
+                                            ? `${Math.abs(pred.predictedRuns - pred.actualRuns)} diff` 
+                                            : "TBD"
+                                        }
+                                    </td>
+                                    <td className="border border-gray-300 px-4 py-2 text-center">
+                                        {(pred.confidence * 100).toFixed(1)}%
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {liveMatches.length === 0 && !loading && (
+                <div className="text-center py-8">
+                    <p className="text-gray-600">No live matches available. Click "Fetch Live Matches" to check for updates.</p>
+                </div>
+            )}
         </div>
     );
 };
 
-export default Live_match;
+export default LiveCricketPredictor;

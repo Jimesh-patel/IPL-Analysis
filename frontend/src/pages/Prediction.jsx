@@ -168,8 +168,6 @@ const Prediction = () => {
       if (!res.ok) throw new Error('Prediction failed');
       const data = await res.json();
       setPrediction(data.predicted_runs);
-
-      // Clear current over input after successful submission
       setCurrentOver({ total_runs: '', wickets: '' });
     } catch (err) {
       setError(err.message);
