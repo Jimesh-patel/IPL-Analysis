@@ -4,9 +4,10 @@ import Home from './Home';
 import PlayerAnalysis from '../components/PlayerAnalysis';
 import Prediction from '../pages/Prediction';
 import Live_match from './Live_match';
+import QueryAnswer from './QueryAnswer';
 
 const PAGES = [
-  { name: 'Season', key: 'season' },
+  { name: 'Query', key: 'QueryAnswer' },
   { name: 'Team analysis', key: 'team' },
   { name: 'Player analysis', key: 'player' },
   { name: 'Predictions', key: 'predictions' },
@@ -21,7 +22,8 @@ const Base = () => {
 
   const renderPage = () => {
     switch (currentPage) {
-
+      case 'QueryAnswer':
+        return <QueryAnswer />;
       case 'team':
         return <Home />;
       case 'player':
@@ -31,7 +33,7 @@ const Base = () => {
       case 'matches':
         return <Live_match />
       default:
-        return <div className="p-8 text-center text-sky-700 text-2xl font-semibold">Coming Soon...</div>;
+        return <QueryAnswer />;
     }
   };
 

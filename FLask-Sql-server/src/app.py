@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # <-- Add this import
 from llm import generate_answer
 
 app = Flask(__name__)
+CORS(app)  # <-- Add this line
 
 @app.route('/test', methods=['GET'])
 def test():
