@@ -21,6 +21,7 @@ const Base = () => {
 
   const renderPage = () => {
     switch (currentPage) {
+
       case 'team':
         return <Home />;
       case 'player':
