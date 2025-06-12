@@ -1,72 +1,104 @@
-# Flask SQL API
+# Flask SQL Server (Natural Language to SQL API)
 
-This project is a Flask-based API that allows users to ask questions, which are then converted into SQL queries and executed against a PostgreSQL database. The results are returned in a human-readable format.
+This Flask server provides a RESTful API that allows users to ask natural language questions about IPL cricket data, which are then translated into SQL queries and executed on a PostgreSQL database. The backend uses Google Gemini (via LangChain) for language understanding and SQLAlchemy for database access.
 
-## Project Structure
+---
 
-```
-flask-sql-api
-├── src
-│   ├── app.py          # Entry point of the Flask application
-│   ├── db.py           # Database connection and query execution
-│   ├── llm.py          # Logic for interacting with the language model
-│   └── utils.py        # Utility functions for the application
-├── requirements.txt     # Project dependencies
-└── README.md            # Project documentation
-```
+## Features
 
-## Setup Instructions
+- Accepts natural language questions and returns answers from the IPL database.
+- Uses Google Gemini LLM for question understanding.
+- Supports CORS for cross-origin requests.
+- Easy integration with frontend applications.
 
-1. **Clone the repository:**
-   ```
-   git clone <repository-url>
-   cd flask-sql-api
-   ```
+---
 
-2. **Create a virtual environment:**
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
+## Requirements
 
-3. **Install dependencies:**
-   ```
-   pip install -r requirements.txt
-   ```
+- Python 3.8+
+- PostgreSQL database with IPL data
+- Google Gemini API key
 
-4. **Set up environment variables:**
-   Ensure you have the necessary environment variables set for your database connection and any API keys required for the language model.
+Install dependencies:
 
-## Usage
-
-1. **Run the Flask application:**
-   ```
-   python src/app.py
-   ```
-
-2. **API Endpoint:**
-   - **POST /ask**
-     - **Request Body:**
-       ```json
-       {
-         "question": "Your question here"
-       }
-       ```
-     - **Response:**
-       ```json
-       {
-         "answer": "The answer to your question"
-       }
-       ```
-
-## Example
-
-To ask a question, you can use a tool like `curl` or Postman:
-
-```bash
-curl -X POST http://localhost:5000/ask -H "Content-Type: application/json" -d '{"question": "What is the total number of matches won by CSK?"}'
+```sh
+pip install -r requirements.txt
 ```
 
-## License
+---
 
-This project is licensed under the MIT License.
+## Environment Variables
+
+Create a `.env` file in the `src/` directory with the following content:
+
+```env
+GOOGLE_API_KEY="your-google-api-key"
+DB_USER="your-db-username"
+DB_PASS="your-db-password"
+DB_HOST="localhost"
+DB_PORT=5432
+DB_NAME="IPL_DATA"
+```
+
+---
+
+## Running the Server
+
+From the `src/` directory, run:
+
+```sh
+python Flask-server/app.py
+```
+
+The server will start on `http://localhost:5001/`.
+
+---
+
+## API Endpoints
+
+### 1. Test Endpoint
+
+**GET** `/test`
+
+_Response:_
+```json
+{ "message": "Welcome to the SQL API. Use the /ask endpoint to ask questions." }
+```
+
+---
+
+### 2. Ask a Question
+
+**POST** `/ask`
+
+_Request Body:_
+```json
+{ "question": "Which team won the most matches in 2020?" }
+```
+
+_Response:_
+```json
+{
+  "question": "Which team won the most matches in 2020?",
+  "answer": "Mumbai Indians won the most matches in 2020."
+}
+```
+
+---
+
+## Notes
+
+- The `/ask` endpoint expects a JSON body with a `question` field.
+- Ensure your PostgreSQL database is running and accessible.
+- The server uses environment variables for sensitive information.
+- CORS is enabled by default.
+
+---
+
+## Example cURL
+
+```sh
+curl -X POST http://localhost:5001/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Show all players who scored more than 500 runs in 2019."}'
+```
